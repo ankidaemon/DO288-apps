@@ -93,15 +93,17 @@ pipeline {
         }
 
         stage('Wait for deployment in DEV env') {
+		steps{
             //TODO: Watch deployment until pod is in 'Running' state
-		script {
-			openshift.withCluster(){
-				openshift.withProject(env.DEV_PROJECT) {
-					def deployment = openshift.selector("dc", "${APP_NAME}").rollout()
-                            openshift.selector("dc", "${APP_NAME}").related('pods').untilEach(1) {
-                                return (it.object().status.phase == "Running")
-                            }
+			script {
+				openshift.withCluster(){
+					openshift.withProject(env.DEV_PROJECT) {
+						def deployment = openshift.selector("dc", "${APP_NAME}").rollout()
+				    openshift.selector("dc", "${APP_NAME}").related('pods').untilEach(1) {
+					return (it.object().status.phase == "Running")
+				    }
 
+					}
 				}
 			}
 		}
@@ -115,7 +117,7 @@ pipeline {
                 script {
                     openshift.withCluster() {
                     // TODO: Tag the ${APP_NAME}:latest image stream in the dev env as ${APP_NAME}:stage in staging
-		openshift.withCluter() {
+			openshift.withCluter() {
 			openshift.tag("${DEV_PROJECT}/${APP_NAME}:latest", "${STAGE_PROJECT}/${APP_NAME}:stage")
 			}
 
